@@ -244,7 +244,7 @@ def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, av
             bar = '+' * int(percent_tags * 60)
             priority = rules[tag].get("priority", "—")[0]
             info_field = f"({cur_hours:.1f}h, {trend})"
-            label_field = f"  - {f'{label}[{priority}]':<20} {info_field:<15}: {bar:<60}"
+            label_field = f"  - {f'{label}[{priority}]':<20} {info_field:<15}: {bar:<60}|"
 
             section.append(f"{label_field}")
 
@@ -279,7 +279,7 @@ def analyze_log_file(log_files, range_arg=None):
         cur_total, cur_days = compute_summary(log_data, rules)
         prev_total = None
 
-        print("=== ACTIVITY SUMMARY ===")
+        print(f"=== ACTIVITY SUMMARY (last {period} days) ===")
 
     print(summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, available_units))
 
