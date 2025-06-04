@@ -53,7 +53,6 @@ def read_metadata(meta_file="metadata.txt"):
     tag_map = {}
     rules = {}
     unit_minutes = 30
-    available_units = 112
     valid_tags = []
     constraint_lines = []
     in_constraint_block = False
@@ -73,9 +72,6 @@ def read_metadata(meta_file="metadata.txt"):
             if line.startswith("unit"):
                 unit_minutes = parse_unit_string(line.split('=')[1])
                 continue
-            if line.startswith("week"):
-                available_units = parse_unit_string(line.split('=')[1])
-                continue
             tag, rest = line.split('=', 1)
             tag = tag.strip()
             valid_tags.append(tag)
@@ -94,7 +90,7 @@ def read_metadata(meta_file="metadata.txt"):
             rules[tag] = {'label': tag}
         rules[tag].update(cons)
 
-    return tag_map, rules, unit_minutes, sorted(valid_tags, key=lambda x: -len(x)), available_units
+    return tag_map, rules, unit_minutes, sorted(valid_tags, key=lambda x: -len(x))
 
 def parse_log(log_string, valid_tags):
     days = log_string.strip().split('/')
@@ -196,7 +192,7 @@ def evaluate_constraints(total, days, rules, unit_minutes, report_days):
     return warnings, max(score, 0)
 
 
-def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, available_units):
+def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes):
     type_groups = defaultdict(list)
     for tag, rule in rules.items():
         typ = rule.get("type", "other")
@@ -204,7 +200,6 @@ def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, av
 
     total_units_all = sum(cur_total.values())
     summary = []
-
     priority_order = {"high": 0, "medium": 1, "low": 2}
 
     for typ in sorted(type_groups.keys()):
@@ -240,7 +235,7 @@ def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, av
             else:
                 trend = "—"
 
-            percent_tags = (cur_units / available_units) if total_units_all else 0
+            percent_tags = (cur_units / total_units_all) if total_units_all else 0
             bar = '+' * int(percent_tags * 60)
             priority = rules[tag].get("priority", "—")[0]
             info_field = f"({cur_hours:.1f}h, {trend})"
@@ -259,7 +254,7 @@ def analyze_log_file(log_files, range_arg=None):
         for file in log_files
     ])
 
-    tag_map, rules, unit_minutes, valid_tags, available_units = read_metadata()
+    tag_map, rules, unit_minutes, valid_tags = read_metadata()
     log_data = parse_log(log_string, valid_tags)
 
     if range_arg:
@@ -281,7 +276,7 @@ def analyze_log_file(log_files, range_arg=None):
 
         print(f"=== ACTIVITY SUMMARY (last {period} days) ===")
 
-    print(summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes, available_units))
+    print(summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes))
 
     print("\n=== CONSTRAINT CHECKS ===")
     warnings, score = evaluate_constraints(cur_total, cur_days, rules, unit_minutes, period)
