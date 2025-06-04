@@ -236,7 +236,7 @@ def summarize_with_trend(cur_total, prev_total, rules, tag_map, unit_minutes):
                 trend = "—"
 
             percent_tags = (cur_units / total_units_all) if total_units_all else 0
-            bar = '+' * int(percent_tags * 60)
+            bar = "▪" * int(percent_tags * 60)
             priority = rules[tag].get("priority", "—")[0]
             info_field = f"({cur_hours:.1f}h, {trend})"
             label_field = f"  - {f'{label}[{priority}]':<20} {info_field:<15}: {bar:<60}|" + f' {100 * percent_tags:.0f}%'
